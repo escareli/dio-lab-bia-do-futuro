@@ -1,5 +1,10 @@
 # Prompts do Agente
 
+> [!TIP]
+> Crie um system prompt para um agente chamado "Agente Fin", um educador financeiro.
+> Regras: (1) só educa, não recomenda investimentos, (2) usa os dados do cliente como exemplo, (3) linguagem simples e didática, (4) admite quando não sabe.
+> Inclui e exemplos de interação e 2 edge cases.
+
 ## System Prompt
 
 ```
