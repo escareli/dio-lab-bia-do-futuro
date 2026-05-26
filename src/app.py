@@ -1,11 +1,33 @@
-import pandas as pd
+import sys
 import json
-import streamlit as st
-import requests
+
+# Dependências verificadas no runtime para mensagens claras se não estiverem instaladas
+_missing = []
+try:
+    import pandas as pd
+except Exception:
+    _missing.append('pandas')
+try:
+    import streamlit as st
+except Exception:
+    _missing.append('streamlit')
+try:
+    import requests
+except Exception:
+    _missing.append('requests')
+
+if _missing:
+    print('Dependências faltando: ' + ', '.join(_missing))
+    print('\nSugestão rápida (PowerShell):')
+    print('python -m venv .venv')
+    print('.\\.venv\\Scripts\\Activate.ps1')
+    print('pip install --upgrade pip')
+    print('pip install -r requirements.txt')
+    sys.exit(1)
 
 # ===== CONFIGURAÇÕES =====
 OLLAMA_URL = "http://localhost:11434/api/generate"  # URL do Ollama
-MODELO = "gtp-oss"
+MODELO = "gpt-oss"  # Modelo a ser usado (ajuste conforme necessário)
 
 # ===== CARREGAR DADOS =====
 #CSVs
@@ -13,10 +35,10 @@ historico = pd.read_csv('data/historico_atendimento.csv')
 transacoes = pd.read_csv('data/transacoes.csv')
 
 #JSONs
-with open('data/perfil_investidor.csv', 'r', enconding='utf-8') as f:
+with open('data/perfil_investidor.json', 'r', encoding='utf-8') as f:
     perfil = json.load(f)
 
-with open('data/produtos_financeiros.csv', 'r', enconding='utf-8') as f:
+with open('data/produtos_financeiros.json', 'r', encoding='utf-8') as f:
     produtos = json.load(f)
 
 # ===== MONTAR CONTEXTO =====
@@ -67,14 +89,12 @@ def perguntar(msg):
             "prompt": prompt,
             "stream": False
         })
-    
-    return r.json()['response']
 
-    # Aqui você chamaria a API do Ollama, passando o SYSTEM_PROMPT + contexto + pergunta
-    # Exemplo (pseudocódigo):
-    # resposta = ollama_api.call(system_prompt=SYSTEM_PROMPT, contexto=contexto, pergunta=pergunta)
-    # return resposta
-    # pass  # Substitua por chamada real à API
+    data = r.json()
+    print(data)
+    if 'response' in data:
+        return data['response']
+    raise RuntimeError(f"Erro na API Ollama: {data}")
 
 # ===== INTERFACE SIMPLES =====
 st.title("Agente Fin - Educador Financeiro")
@@ -82,4 +102,4 @@ st.title("Agente Fin - Educador Financeiro")
 if pergunta := st.chat_input("Faça sua pergunta sobre finanças pessoais:"):
     st.chat_message("user").write(pergunta)
     with st.spinner("Pensando..."):
-        st.chat_message("agent").write(perguntar(pergunta))
+        st.chat_message("assistant").write(perguntar(pergunta))
